@@ -1,0 +1,41 @@
+@startuml
+class Lancher
+class MainThread
+class AudioThread #FFBBBB
+class AudioRoutine #FFBBBB
+class AudioManager #FFBBBB
+class AudioSource #FFBBBB
+interface AudioScript #EEFFFF
+note "scriptはymlを読んだり\nShareDataを通してAudioThreadの情報を流したりする" as n2
+object script #FFBBBB
+  script ..|> AudioScript : 実装
+  script .up. n2
+interface MixPattern #EEFFFF
+  MixPattern --|> AudioScript
+class FastCutIn #FFBBBB
+  FastCutIn ..|> MixPattern : 実装
+interface PlayList #EEFFFF
+class RuntimePlayList
+  RuntimePlayList ..|> PlayList : 実装
+class ShareData
+object scripts #FFBBBB
+object sources #FFBBBB
+
+Lancher *--> MainThread : 起動
+Lancher *-> AudioThread : 起動
+AudioThread *--> AudioRoutine
+  AudioRoutine *--> AudioManager
+    AudioManager *--> scripts
+    AudioManager *--> sources
+    scripts o--> AudioScript
+    sources *--> AudioSource
+  MainThread o--> AudioManager
+  MainThread --> script : 生成
+  MainThread --> FastCutIn : 生成
+  MainThread *--> RuntimePlayList
+  MainThread *---> ShareData
+    script o--> sources
+    script o--> ShareData
+
+
+@enduml

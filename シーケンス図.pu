@@ -1,0 +1,141 @@
+@startuml
+participant MainThread #FFFFCC
+participant AudioThread #FFBBBB
+participant AudioRoutine #FFBBBB
+participant AudioManager #FFBBBB
+participant scripts <<MutableList>> #FFBBBB
+participant sources <<MutableMap>> #FFBBBB
+participant AudioScript #FFBBBB
+participant AudioSource #FFBBBB
+
+par
+  AudioThread -> AudioRoutine : update()
+    AudioRoutine -> AudioManager : updateLock()
+      activate AudioManager #FFBBBB
+      AudioManager -> AudioManager : lock()
+      critical
+
+      AudioManager -> sources : forEach
+        activate sources #FFBBBB
+        sources -> AudioSource : onPlayUpdate()
+        activate AudioSource #FFBBBB
+        AudioSource -> AudioSource : head変更
+        AudioSource -> AudioSource : seekTo変更
+        AudioSource -> AudioSource : processBuffer変更
+        deactivate AudioSource
+        sources <--AudioSource
+        deactivate sources
+      AudioManager <--sources
+
+      AudioManager -> scripts : forEach
+        activate scripts #FFBBBB
+        scripts -> AudioScript : apply()
+          activate AudioScript #FFBBBB
+          AudioScript -> AudioSource : seek()
+            activate AudioSource #FFBBBB
+            AudioSource -> AudioSource : seekTo変更
+            deactivate AudioSource
+          AudioScript <--AudioSource
+          AudioScript -> AudioSource : onPlayUpdate()
+            activate AudioSource #FFBBBB
+            AudioSource -> AudioSource : head変更
+            AudioSource -> AudioSource : seekTo変更
+            AudioSource -> AudioSource : processBuffer変更
+            deactivate AudioSource
+          AudioScript <--AudioSource
+          AudioScript -> AudioSource : modify()
+            activate AudioSource #FFBBBB
+            AudioSource -> AudioSource : processBuffer変更
+            deactivate AudioSource
+          AudioScript <--AudioSource
+          deactivate AudioScript
+        scripts <--AudioScript
+        deactivate scripts #FFBBBB
+      AudioManager <--scripts
+
+      AudioManager -> sources : map
+        activate sources #FFBBBB
+        sources -> AudioSource : processBuffer取得
+          activate AudioSource #FFBBBB
+          deactivate AudioSource
+        sources <--AudioSource : processBuffer
+        deactivate sources
+      AudioManager <--sources : return List<AudioArray>
+      AudioManager -> AudioManager : tmpSources更新
+      AudioManager -> AudioManager : unlock()
+      end
+      deactivate AudioManager
+    AudioRoutine <--AudioManager
+  AudioThread <--AudioRoutine
+
+
+  AudioThread -> AudioRoutine : render()
+    AudioRoutine -> AudioRoutine : 合算
+  AudioThread <--AudioRoutine
+
+else
+
+  note over MainThread : nextMix()
+  MainThread -> AudioManager : createAudioSource()
+    activate AudioManager #FFFFCC
+    AudioManager -> AudioManager : lock()
+    critical
+    AudioManager -> AudioSource : new
+    AudioManager <--AudioSource : AudioSource
+    AudioManager -> sources : add()
+      activate sources #FFFFCC
+      deactivate sources
+    AudioManager <--sources
+    AudioManager -> AudioManager : unlock()
+    end
+    deactivate AudioManager
+  MainThread <--AudioManager : return ID
+
+  MainThread -> AudioManager : loadAt()
+    activate AudioManager #FFFFCC
+    AudioManager -> AudioManager : lock()
+    critical
+    AudioManager -> AudioSource : load()
+      activate AudioSource #FFFFCC
+      AudioSource -> AudioSource : processBuffer変更
+      deactivate AudioSource #FFFFCC
+    AudioManager <--AudioSource
+    AudioManager -> AudioManager : unlock()
+    end
+    deactivate AudioManager
+  MainThread <--AudioManager
+
+  MainThread -> AudioScript : new
+  MainThread <--AudioScript : AudioScript
+  MainThread -> AudioManager : addScript()
+    activate AudioManager #FFFFCC
+    AudioManager -> AudioManager : lock()
+    critical
+    AudioManager -> scripts : add()
+      activate scripts #FFFFCC
+      deactivate scripts
+    AudioManager <--scripts
+    AudioManager -> AudioManager : unlock()
+    end
+    deactivate AudioManager
+  MainThread <--AudioManager
+
+  |||
+  |||
+  note over MainThread : removeMix()
+  MainThread -> AudioManager : removeSource()
+    activate AudioManager #FFFFCC
+    AudioManager -> AudioManager : lock()
+    critical
+    AudioManager -> sources : remove()
+      activate sources #FFFFCC
+      deactivate sources
+    AudioManager <--sources
+    AudioManager -> AudioManager : unlock()
+    end
+    deactivate AudioManager
+  MainThread <--AudioManager
+
+end
+
+@enduml

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import works.chiudesu.djdj.viewer.ScalableCanvas?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import works.chiudesu.djdj.viewer.KeyControlButton?>
+
+<fx:root type="BorderPane"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            prefWidth="800.0" prefHeight="300.0"
+            minWidth="200" minHeight="100">
+    <top>
+        <KeyControlButton fx:id="logViewButton" text="logView OFF"
+                          selectedText= "logView ON" unselectedText="logView OFF"/>
+    </top>
+    <center>
+        <SplitPane>
+
+            <ScalableCanvas fx:id="timeCanvas" SplitPane.resizableWithParent="true"/>
+
+            <ScalableCanvas fx:id="freqCanvas" SplitPane.resizableWithParent="true"/>
+        </SplitPane>
+    </center>
+</fx:root>

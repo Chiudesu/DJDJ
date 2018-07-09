@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+
+<?import javafx.scene.control.TableColumn?>
+<fx:root type="BorderPane"
+         xmlns="http://javafx.com/javafx"
+         xmlns:fx="http://javafx.com/fxml"
+         minWidth="80" minHeight="50">
+    <center>
+        <TableView fx:id="scriptTable" editable="false">
+            <columns>
+                <TableColumn fx:id="columnIndex" text="Index" prefWidth="50"/>
+                <TableColumn fx:id="columnName" text="ClassName" prefWidth="400"/>
+            </columns>
+        </TableView>
+    </center>
+</fx:root>
